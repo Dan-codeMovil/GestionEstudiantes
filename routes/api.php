@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiEstudianteController;
+use App\Http\Middleware\CheckRol;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,12 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mostrar el detalle de un estudiante por su ID
     Route::get('/estudiantes/{estudiante}', [ApiEstudianteController::class, 'show']);
 
-    // Crear un nuevo estudiante (La validación de rol 'admin' se hace en el controlador)
-    Route::post('/estudiantes', [ApiEstudianteController::class, 'store']);
-
-    // Actualizar un estudiante existente
-    Route::put('/estudiantes/{estudiante}', [ApiEstudianteController::class, 'update']);
-
-    // Eliminar un estudiante (La validación de rol 'admin' se hace en el controlador)
-    Route::delete('/estudiantes/{estudiante}', [ApiEstudianteController::class, 'destroy']);
+    Route::middleware([CheckRol::class . ':admin'])->group(function () {
+        Route::post('/estudiantes', [ApiEstudianteController::class, 'store']);
+        Route::put('/estudiantes/{estudiante}', [ApiEstudianteController::class, 'update']);
+        Route::delete('/estudiantes/{estudiante}', [ApiEstudianteController::class, 'destroy']);
+    });
 });

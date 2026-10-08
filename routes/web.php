@@ -13,17 +13,17 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Rutas Protegidas por Autenticación
 Route::middleware(['auth'])->group(function () {
 
-    // Rutas accesibles para Estudiantes y Admin (Listar y Editar)
+    // Admin y estudiante: solo listar
     Route::middleware([CheckRol::class . ':admin,estudiante'])->group(function () {
         Route::get('/estudiantes', [EstudianteController::class, 'index'])->name('estudiantes.index');
-        Route::get('/estudiantes/{estudiante}/edit', [EstudianteController::class, 'edit'])->name('estudiantes.edit');
-        Route::put('/estudiantes/{estudiante}', [EstudianteController::class, 'update'])->name('estudiantes.update');
     });
 
-    // Rutas EXCLUSIVAS de Admin (Crear y Eliminar)
+    // Solo admin: crear, editar, eliminar
     Route::middleware([CheckRol::class . ':admin'])->group(function () {
         Route::get('/estudiantes/create', [EstudianteController::class, 'create'])->name('estudiantes.create');
         Route::post('/estudiantes', [EstudianteController::class, 'store'])->name('estudiantes.store');
+        Route::get('/estudiantes/{estudiante}/edit', [EstudianteController::class, 'edit'])->name('estudiantes.edit');
+        Route::put('/estudiantes/{estudiante}', [EstudianteController::class, 'update'])->name('estudiantes.update');
         Route::delete('/estudiantes/{estudiante}', [EstudianteController::class, 'destroy'])->name('estudiantes.destroy');
     });
 });

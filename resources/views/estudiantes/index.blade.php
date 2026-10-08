@@ -241,6 +241,7 @@
             </div>
 
             <div class="card-body p-4">
+                @php $esAdmin = Auth::user()->rol === 'admin'; @endphp
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
@@ -250,7 +251,9 @@
                                 <th>Email</th>
                                 <th>Documento</th>
                                 <th>Carrera</th>
-                                <th class="text-center">Acciones</th>
+                                @if($esAdmin)
+                                    <th class="text-center">Acciones</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -261,27 +264,27 @@
                                     <td>{{ $estudiante->email }}</td>
                                     <td>{{ $estudiante->documento }}</td>
                                     <td>{{ $estudiante->carrera }}</td>
-                                    <td class="text-center">
-                                        <!-- Permitir Editar tanto a Admin como Estudiante -->
-                                        <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-warning btn-sm me-1" title="Editar">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
 
-                                        <!-- Permitir Eliminar SOLO a Admin -->
-                                        @if(Auth::user()->rol === 'admin')
-                                            <form action="{{ route('estudiantes.destroy', $estudiante) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Deseas eliminar este registro?')">
+                                    @if($esAdmin)
+                                        <td class="text-center">
+                                            <a href="{{ route('estudiantes.edit', $estudiante) }}" class="btn btn-warning btn-sm me-1" title="Editar">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <form action="{{ route('estudiantes.destroy', $estudiante) }}" method="POST" class="d-inline"
+                                                onsubmit="return confirm('¿Deseas eliminar este registro?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             </form>
-                                        @endif
-                                    </td>
+                                        </td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No hay estudiantes registrados.</td>
+                                    <td colspan="{{ $esAdmin ? 6 : 5 }}" class="text-center text-muted py-4">No hay estudiantes registrados.</td>
                                 </tr>
                             @endforelse
                         </tbody>
