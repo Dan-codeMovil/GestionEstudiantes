@@ -34,16 +34,18 @@ class ApiEstudianteController extends Controller
         }
 
         $validated = $request->validate([
-            'nombre'    => 'required|string|max:100',
-            'email'     => 'required|email|unique:estudiantes,email',
-            'documento' => 'required|numeric|unique:estudiantes,documento',
-            'carrera'   => 'required|string|max:100',
-        ]);
+        'nombre'    => 'required|string|max:100',
+        'email'     => 'required|email|unique:estudiantes,email',
+        'documento' => ['required', 'regex:/^\d{5,15}$/', 'unique:estudiantes,documento'],
+        'carrera'   => 'required|string|max:100',
+    ], [
+        'documento.regex' => 'El documento debe tener entre 5 y 15 dígitos, sin espacios ni símbolos.',
+    ]);
 
         $estudiante = Estudiante::create($validated);
 
         $this->registrarAuditoria(
-            $request->user()->name,
+            $request->user()->email,
             'CREAR_API',
             "Creó estudiante ID: {$estudiante->id} vía API",
             $request->ip()
@@ -63,16 +65,18 @@ class ApiEstudianteController extends Controller
     public function update(Request $request, Estudiante $estudiante)
     {
         $validated = $request->validate([
-            'nombre'    => 'required|string|max:100',
-            'email'     => 'required|email|unique:estudiantes,email,' . $estudiante->id,
-            'documento' => 'required|numeric|unique:estudiantes,documento,' . $estudiante->id,
-            'carrera'   => 'required|string|max:100',
-        ]);
+        'nombre'    => 'required|string|max:100',
+        'email'     => 'required|email|unique:estudiantes,email,' . $estudiante->id,
+        'documento' => ['required', 'regex:/^\d{5,15}$/', 'unique:estudiantes,documento,' . $estudiante->id],
+        'carrera'   => 'required|string|max:100',
+    ], [
+        'documento.regex' => 'El documento debe tener entre 5 y 15 dígitos, sin espacios ni símbolos.',
+    ]);
 
         $estudiante->update($validated);
 
         $this->registrarAuditoria(
-            $request->user()->name,
+            $request->user()->email,
             'EDITAR_API',
             "Actualizó estudiante ID: {$estudiante->id} vía API",
             $request->ip()
@@ -94,7 +98,7 @@ class ApiEstudianteController extends Controller
         $estudiante->delete();
 
         $this->registrarAuditoria(
-            $request->user()->name,
+            $request->user()->email,
             'ELIMINAR_API',
             "Eliminó estudiante ID: {$id} vía API",
             $request->ip()

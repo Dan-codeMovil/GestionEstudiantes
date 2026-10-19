@@ -223,6 +223,7 @@
 
             <div class="mb-3">
                 <label class="form-label">DOCUMENTO</label>
+                <inputmode="numeric">
                 <input type="text" name="documento" class="form-control"
                        value="{{ old('documento', $estudiante->documento) }}" placeholder="Ingrese el documento">
             </div>

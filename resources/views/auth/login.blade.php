@@ -81,10 +81,10 @@
             @csrf
 
             <div class="mb-3">
-                <label for="name" class="form-label text-secondary fw-semibold small">USUARIO</label>
+                <label for="email" class="form-label text-secondary fw-semibold small">EMAIL</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
-                    <input type="text" class="form-control bg-light border-start-0" id="name" name="name" value="{{ old('name') }}" placeholder="Ej: admin" required autofocus>
+                    <input type="email" class="form-control bg-light border-start-0" id="email" name="email" value="{{ old('email') }}" placeholder="Ej: admin@example.com" required autofocus>
                 </div>
             </div>
 

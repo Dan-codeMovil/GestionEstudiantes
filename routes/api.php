@@ -5,17 +5,9 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiEstudianteController;
 use App\Http\Middleware\CheckRol;
 
-/*
-|--------------------------------------------------------------------------
-| Rutas Públicas (No requieren Token)
-|--------------------------------------------------------------------------
-*/
 
 // Inicio de Sesión vía API para generar el Token Bearer
 Route::post('/login', [ApiAuthController::class, 'login']);
-
-// Endpoint opcional para consultar la lista de estudiantes sin autenticar
-Route::get('/v1/estudiantes-publico', [ApiEstudianteController::class, 'obtenerEstudiantesPublico']);
 
 
 /*

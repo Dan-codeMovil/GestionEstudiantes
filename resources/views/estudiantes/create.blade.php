@@ -230,6 +230,7 @@
                 <label class="form-label">CORREO ELECTRÓNICO</label>
                 <input type="email" name="email" class="form-control" 
                        value="{{ old('email') }}" placeholder="Ingrese el correo">
+                <inputmode="numeric">
             </div>
 
             <div class="mb-3">

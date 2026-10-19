@@ -39,11 +39,13 @@ public function index()
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre'    => 'required|string|max:100',
-            'email'     => 'required|email|unique:estudiantes,email',
-            'documento' => 'required|numeric|unique:estudiantes,documento',
-            'carrera'   => 'required|string|max:100',
-        ]);
+        'nombre'    => 'required|string|max:100',
+        'email'     => 'required|email|unique:estudiantes,email',
+        'documento' => ['required', 'regex:/^\d{5,15}$/', 'unique:estudiantes,documento'],
+        'carrera'   => 'required|string|max:100',
+    ], [
+        'documento.regex' => 'El documento debe tener entre 5 y 15 dígitos, sin espacios ni símbolos.',
+    ]);
 
         $estudiante = Estudiante::create($validated);
 
@@ -62,8 +64,10 @@ public function index()
         $validated = $request->validate([
             'nombre'    => 'required|string|max:100',
             'email'     => 'required|email|unique:estudiantes,email,' . $estudiante->id,
-            'documento' => 'required|numeric|unique:estudiantes,documento,' . $estudiante->id,
+            'documento' => ['required', 'regex:/^\d{5,15}$/', 'unique:estudiantes,documento,' . $estudiante->id],
             'carrera'   => 'required|string|max:100',
+        ], [
+            'documento.regex' => 'El documento debe tener entre 5 y 15 dígitos, sin espacios ni símbolos.',
         ]);
 
         $estudiante->update($validated);

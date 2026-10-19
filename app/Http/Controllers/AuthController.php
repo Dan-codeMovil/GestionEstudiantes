@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Auditoria;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -17,37 +19,50 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'name'     => 'required|string',
-            'password' => 'required'
+            'email'    => 'required|email',
+            'password' => 'required',
         ]);
 
+        $key = Str::lower($request->email) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $segundos = RateLimiter::availableIn($key);
+            return back()->withErrors([
+                'email' => "Demasiados intentos. Intenta de nuevo en {$segundos} segundos.",
+            ])->onlyInput('email');
+        }
+
         if (Auth::attempt($credentials)) {
+            RateLimiter::clear($key);
             $request->session()->regenerate();
 
-            // Auditoría de inicio de sesión exitoso
             Auditoria::create([
-                'usuario'          => Auth::user()->name,
+                'usuario'          => Auth::user()->email,
                 'ip'               => $request->ip(),
                 'tipo_transaccion' => 'LOGIN',
                 'descripcion'      => 'Inicio de sesión exitoso',
-                'fecha_hora'       => Carbon::now()
+                'fecha_hora'       => Carbon::now(),
             ]);
 
             return redirect()->intended('/estudiantes');
         }
 
-        return back()->withErrors(['name' => 'El usuario o la contraseña son incorrectos.']);
+        RateLimiter::hit($key, 60);
+
+        return back()->withErrors([
+            'email' => 'El correo o la contraseña son incorrectos.',
+        ])->onlyInput('email');
     }
 
     public function logout(Request $request)
     {
         if (Auth::check()) {
             Auditoria::create([
-                'usuario'          => Auth::user()->name,
+                'usuario'          => Auth::user()->email,
                 'ip'               => $request->ip(),
                 'tipo_transaccion' => 'LOGOUT',
                 'descripcion'      => 'Cierre de sesión manual o automático',
-                'fecha_hora'       => Carbon::now()
+                'fecha_hora'       => Carbon::now(),
             ]);
         }
 

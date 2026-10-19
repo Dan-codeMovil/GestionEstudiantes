@@ -8,35 +8,43 @@ use App\Models\Auditoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str; 
 
 class ApiAuthController extends Controller
 {
     public function login(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string',
+            'email'    => 'required|email',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('name', $request->name)->first();
+        $key = Str::lower($request->email) . '|' . $request->ip();
 
-        // Validar credenciales
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (RateLimiter::tooManyAttempts($key, 3)) {
             return response()->json([
-                'message' => 'Credenciales incorrectas'
-            ], 401);
+                'message' => 'Demasiados intentos. Reintenta en ' . RateLimiter::availableIn($key) . ' segundos.'
+            ], 429);
         }
 
-        // Generar Token con Sanctum
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            RateLimiter::hit($key, 60);
+            return response()->json(['message' => 'Credenciales incorrectas'], 401);
+        }
+
+        RateLimiter::clear($key);
+
         $token = $user->createToken('api-token')->plainTextToken;
 
-        // Registrar Auditoría
         Auditoria::create([
-            'usuario'          => $user->name,
+            'usuario'          => $user->email,
             'ip'               => $request->ip(),
             'tipo_transaccion' => 'LOGIN_API',
             'descripcion'      => 'Inicio de sesión vía API (Token generado)',
-            'fecha_hora'       => Carbon::now()
+            'fecha_hora'       => Carbon::now(),
         ]);
 
         return response()->json([
@@ -46,8 +54,8 @@ class ApiAuthController extends Controller
             'user'         => [
                 'id'   => $user->id,
                 'name' => $user->name,
-                'rol'  => $user->rol
-            ]
+                'rol'  => $user->rol,
+            ],
         ], 200);
     }
 
@@ -55,7 +63,7 @@ class ApiAuthController extends Controller
     {
         // Registrar Auditoría antes de revocar
         Auditoria::create([
-            'usuario'          => $request->user()->name,
+            'usuario'          => $request->user()->email,
             'ip'               => $request->ip(),
             'tipo_transaccion' => 'LOGOUT_API',
             'descripcion'      => 'Cierre de sesión vía API (Token eliminado)',
