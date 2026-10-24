@@ -21,9 +21,11 @@ class ApiEstudianteController extends Controller
         ]);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Estudiante::all(), 200);
+        $perPage = min(max((int) $request->query('per_page', 10), 1), 50);
+
+        return response()->json(Estudiante::orderBy('id')->paginate($perPage), 200);
     }
 
     public function store(Request $request)

@@ -127,4 +127,27 @@ class EstudianteWebTest extends TestCase
         $this->assertDatabaseMissing('estudiantes', ['id' => $e->id]);
         $this->assertDatabaseHas('auditorias', ['tipo_transaccion' => 'ELIMINAR']);
     }
+
+    // EstudianteWebTest
+    public function test_listado_web_esta_paginado(): void
+    {
+        Estudiante::factory()->count(15)->create();
+        $this->actingAs(User::factory()->create());
+
+        $this->get('/estudiantes')
+            ->assertOk()
+            ->assertViewHas('estudiantes', fn ($p) => $p->count() === 10 && $p->total() === 15);
+
+        $this->get('/estudiantes?page=2')
+            ->assertViewHas('estudiantes', fn ($p) => $p->count() === 5);
+    }
+
+    public function test_admin_abre_crear_y_editar_con_la_barra_de_navegacion(): void
+    {
+        $e = Estudiante::factory()->create();
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->get('/estudiantes/create')->assertOk()->assertSee('Cerrar Sesión');
+        $this->get("/estudiantes/{$e->id}/edit")->assertOk()->assertSee('Cerrar Sesión');
+    }
 }

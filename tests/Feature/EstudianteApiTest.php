@@ -29,13 +29,32 @@ class EstudianteApiTest extends TestCase
         ], $extra);
     }
 
+    
     public function test_estudiante_puede_listar_y_ver(): void
     {
         $e = Estudiante::factory()->create();
         $this->withToken($this->token(User::factory()->create()));
 
-        $this->getJson('/api/estudiantes')->assertOk()->assertJsonCount(1);
+          $this->getJson('/api/estudiantes')->assertOk()->assertJsonCount(1, 'data');
         $this->getJson("/api/estudiantes/{$e->id}")->assertOk()->assertJsonPath('id', $e->id);
+    }
+     
+    
+
+    // EstudianteApiTest
+    public function test_api_pagina_y_limita_per_page(): void
+    {
+        Estudiante::factory()->count(15)->create();
+        $this->withToken($this->token(User::factory()->create()));
+
+        $this->getJson('/api/estudiantes')
+            ->assertOk()
+            ->assertJsonCount(10, 'data')
+            ->assertJsonPath('total', 15);
+
+        $this->getJson('/api/estudiantes?per_page=1000')
+            ->assertOk()
+            ->assertJsonPath('per_page', 50);
     }
 
     public function test_estudiante_recibe_403_al_escribir(): void

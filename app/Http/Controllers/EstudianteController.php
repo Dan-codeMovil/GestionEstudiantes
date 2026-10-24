@@ -24,7 +24,8 @@ class EstudianteController extends Controller
 public function index()
 {
     // Carga los estudiantes para la vista web de Blade
-    $estudiantes = Estudiante::all();
+    //$estudiantes = Estudiante::all();
+    $estudiantes = Estudiante::orderBy('id')->paginate(10);
 
     // DEBE RETORNAR LA VISTA, NO UN JSON
     return view('estudiantes.index', compact('estudiantes'));
